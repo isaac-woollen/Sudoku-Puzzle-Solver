@@ -1,11 +1,14 @@
-# GUI.py
+# main.py
+
+# Imports for libraries/modules
 import pygame
 from solver import solve, valid
 import time
 from Board import generateValidBoard
 pygame.font.init()
-theme = 0
+theme = 0 # Initialize theme
 
+# Collection of themes
 themes =    {
                 0:{"text": (0,0,0), "line": (0,0,0), "background": (255,255,255), "button": (0,0,0), "name":"Light"},
                 1:{"text": (255,255,255), "line": (255,255,255), "background": (0,0,0), "button": (255,255,255), "name":"Dark"},
@@ -14,12 +17,14 @@ themes =    {
                 4:{"text": (82,94,117), "line": (120,147,138), "background": (241,221,191), "button": (82,94,117), "name":"Calm"}
             }
 
+# Mode levels
 modes =     {
                 0:"Easy",
                 1:"Medium",
                 2:"Hard"
             }
 
+# Grid Class
 class Grid:
     board = [
         [7, 8, 0, 4, 0, 0, 1, 2, 0],
@@ -50,6 +55,10 @@ class Grid:
     def change_mode(self):
         self.mode = (self.mode + 1) % 3
         self.board = generateValidBoard(self.mode)
+        self.cubes = [[Cube(self.board[i][j], i, j, 540, 540) for j in range(9)] for i in range(9)]
+    
+    def solve_board(self):
+        self.board = solve(self.board)
         self.cubes = [[Cube(self.board[i][j], i, j, 540, 540) for j in range(9)] for i in range(9)]
 
     def place(self, val):
@@ -122,7 +131,7 @@ class Grid:
                     return False
         return True
 
-
+# Cube Class
 class Cube:
     rows = 9
     cols = 9
@@ -178,10 +187,6 @@ def redraw_window(win, board, time, strikes):
     else:
         text = fnt.render(modes[board.mode] , 1, themes[theme]["background"])
         win.blit(text, (205, 575))
-    # Draw Strikes
-    # text = fnt.render("X " * strikes, 1, (255, 0, 0))
-    #win.blit(text, (20, 560))
-    # Draw grid and board
     board.draw(win)
 
 
@@ -195,24 +200,28 @@ def format_time(secs):
     mat = " " + str(minute) + ":" + str(sec)
     return mat
 
-
+# Main Method
 def main():
-    win = pygame.display.set_mode((562,650))
-    pygame.display.set_caption("Sudoku")
-    board = Grid(9, 9, 540, 540)
+    win = pygame.display.set_mode((562,650)) # Start Window
+    pygame.display.set_caption("Sudoku") # Set Caption
+    board = Grid(9, 9, 540, 540) # Generate Board
     key = None
     run = True
-    start = time.time()
-    strikes = 0
-    global theme
+    start = time.time() # Start Time
+    global theme # Include theme as a global variable
+
+    # Start Game
     while run:
 
-        play_time = round(time.time() - start)
+        play_time = round(time.time() - start) # Sets Time each pass
 
+        # Look for events
         for event in pygame.event.get():
-            if event.type == pygame.QUIT:
+            if event.type == pygame.QUIT: #  If user clicks close
                 run = False
-            if event.type == pygame.KEYDOWN:
+            if event.type == pygame.KEYDOWN: #  If user presses a key see what key
+
+                # Keys that are numbers
                 if event.key == pygame.K_1:
                     key = 1
                 if event.key == pygame.K_2:
@@ -231,9 +240,13 @@ def main():
                     key = 8
                 if event.key == pygame.K_9:
                     key = 9
-                if event.key == pygame.K_DELETE:
+
+                # If delete is pressed
+                if event.key == pygame.K_DELETE: 
                     board.clear()
                     key = None
+
+                # If enter is pressed
                 if event.key == pygame.K_RETURN:
                     i, j = board.selected
                     if board.cubes[i][j].temp != 0:
@@ -244,28 +257,37 @@ def main():
                             strikes += 1
                         key = None
 
-                        if board.is_finished():
-                            print("Game over")
-                            run = False
+                # If s is pressed
+                if event.key == pygame.K_s:
+                    if not board.is_finished():
+                        board.solve_board()
+                        print("Solved")
+                
+                # If ESC is pressed
+                if event.key == pygame.K_ESCAPE:
+                    run = False
+                    key = None
 
+                # If mouse is pressed
             if event.type == pygame.MOUSEBUTTONDOWN:
-                pos = pygame.mouse.get_pos()
-                clicked = board.click(pos)
+                pos = pygame.mouse.get_pos() # Gets mouse position
+                clicked = board.click(pos) # Check if mouse is on board
                 if clicked:
                     board.select(clicked[0], clicked[1])
                     key = None
+                # Check if mouse is on buttons
                 if 570 <= pos[1] <= 570 + 45:
                     if 40 <= pos[0] <= 40 + 120:
-                        theme = (theme + 1) % 5
+                        theme = (theme + 1) % 5 # Change theme
                     if 180 <= pos[0] <= 180 + 120:
-                        board.change_mode()
+                        board.change_mode() # Change mode
 
-
+        # Draw window
         if board.selected and key != None:
             board.sketch(key)
 
-        redraw_window(win, board, play_time, strikes)
-        pygame.display.update()
+        redraw_window(win, board, play_time, strikes) # Redraw window
+        pygame.display.update() # Update Window
 
-main()
-pygame.quit()
+main() # Start Main Method
+pygame.quit() # Quit pygame
