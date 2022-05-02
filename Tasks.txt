@@ -1,0 +1,13 @@
+Build board class (Isaac)
+  - 9 x 9 array
+  - 0's are empty spaces
+  - Generates valid board
+  - Based on difficulty, returns board to be solved
+
+Build solver (David)
+  - tries a number from left to right, and top to bottom
+  - backtracks if number guess is invalid
+  - validator function
+
+Build GUI with pygame (Kion & Alexandra)
+  - timer
